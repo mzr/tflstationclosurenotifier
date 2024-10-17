@@ -2,7 +2,9 @@ package com.example.tflstationclosurenotifier
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.pm.PackageManager
 import android.os.Build
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,9 +18,14 @@ import androidx.compose.runtime.Composable
 import com.google.firebase.messaging.FirebaseMessaging
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.tflstationclosurenotifier.ui.theme.TflStationClosureNotifierTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val PERMISSION_REQUEST_CODE = 1000
+
 
     private fun sendTokenToServer(token: String) {
         // Implement sending the token to your server here (if necessary)
@@ -29,16 +36,50 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "MainActivity"
     }
 
+    // Handle the permission request result
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted, you can show notifications
+                } else {
+                    // Permission denied, handle accordingly
+                }
+            }
+        }
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                // Request notification permission
+                ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    PERMISSION_REQUEST_CODE)
+            }
+        }
+        
 
         // Create notification channel if the Android version is 8.0 or above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "default_channel",
                 "Default Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
+                //NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "This is the default notification channel"
             }
@@ -47,6 +88,12 @@ class MainActivity : ComponentActivity() {
                 getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
+        
+        
+        
+        
+        
+        
 
         // Retrieve the FCM token
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->

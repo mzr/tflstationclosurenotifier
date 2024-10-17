@@ -36,6 +36,12 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="default_channel" />
 
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:src="@android:drawable/ic_menu_more" />-->
+
+
     </application>
 
 </manifest>
